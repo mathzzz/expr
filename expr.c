@@ -1,10 +1,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <ctype.h>
+#include <string.h>
 
-char *math = "1+2+3+4*5/2-6+7";
+int expr(int oper);
+char math[100]; //"-1+2*3/-2--3-1+2+3+4*5/-2-6+7-8*2/-4-5-7+++++-9";
 char *pc;
-
+ 
 int get_pri(int op)
 {
 	switch (op) {
@@ -20,14 +22,21 @@ int get_pri(int op)
 
 int pri(int op1, int op2)
 {
-	char map[] = { [0]=0, ['+']=1, ['-']=1, ['*']=2, ['/']=2, ['#'] = 0,};
-	return map[op1] - map[op2];
+	char map[] = { [0]=0, ['(']=1, [')']=1, ['+']=2, ['-']=2, ['*']=3, ['/']=3};
+	int pri1 = map[op1];
+	int pri2 = map[op2];
+	return pri1 - pri2;
 }
 
 int get_num(void)
 {
 	int ch = *pc++;
-	
+	if(ch == '+') 
+		return expr(ch);
+	else if(ch == '-')
+		return -expr(ch);
+	else if(ch == '(' )
+		return expr(ch);
 	return ch - '0';
 }
 
@@ -42,26 +51,33 @@ void unget(void)
 	pc--;
 }
 
+int peek(void)
+{
+	return *pc;
+}
+
 int expr(int oper)
 {
-	int num=get_num();	
+	int num;
 	int op; 
-	int t;
+
+	num = get_num();	
 
 loop:
 	op = get_op();
-	if(pri(oper,op) >= 0) {
-		unget();
+	if(pri(oper,op)>= 0) {
+		if(!(oper == '(' && op == ')'))
+			unget();
 		return num;
 	}
 
 	//  oper < op
 	switch(op) {
 	case '+':
-		num = num + expr(op);
+			num = num + expr(op);
 		break;
 	case '-':
-		num = num - expr(op);
+			num = num - expr(op);
 		break;
 	case '*':
 		num = num * expr(op);
@@ -76,6 +92,7 @@ loop:
 
 int main(int argc, char **argv)
 {
+	strcpy(math, argv[1]);
 	pc = math;
 
 	int ans = expr('\0');
@@ -83,9 +100,9 @@ int main(int argc, char **argv)
 	printf("ans=%d\n", ans);
 
 	char buf[120];
-
 	
 	sprintf(buf, "echo $((%s))", math);
+
 	system(buf);
 
 	return 0;

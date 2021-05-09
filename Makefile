@@ -6,7 +6,8 @@ CFLAGS=-g
 LDFLAGS=-dl -dynamic
 
 $(tgt):$(obj)
-	gcc -o $@ $(obj) $(LDFLAGS)
+	gcc -o $@ $(obj) $(LDFLAGS) && sh test.sh
+	rm -f expr
 
 .c.o:
 
